@@ -1,34 +1,54 @@
-from telegram.ext import Application, Updater, CommandHandler, CallbackContext, MessageHandler, filters
-from telegram import Update, ForceReply
-import datetime
+import pygame
+import sys
+from pygame import draw
+from pygame.locals import *
 
-async def start(update=Update,context=CallbackContext):
-    await update.message.reply_text(f"Hi {update.message.from_user.full_name}")
 
-async def echo(update: Update, context:CallbackContext):
-    await update.message.reply_text(update.message.text)
+RED = (255, 0, 0)
+GRAY = (150, 150, 150)
 
-async def time(update: Update, context: CallbackContext):
-    await update.message.reply_text(datetime.datetime.strftime(datetime.datetime.now(),"%d %B %Y %H:%M:%S"))
+PLAYER_POSITION = (535, 500)
 
-async def help(update: Update, context: CallbackContext):
-    await update.message.reply_html(
-        "test telegram bot\n\n" +
-        "/start - to start the bot\n" +
-        "/help - to get help\n" +
-        "/time - get current date and time\n",
-        reply_markup=ForceReply(selective=True)
-    )
+def key_pressed(key):
+    match key:
+        case pygame.K_LEFT:
+            PLAYER_POSITION['x'] -= 10 
+        case esc:
+            return False
+        
 
 def main():
-    application = Application.builder().token("TOKEN").build()
+    pygame.init()
+    screen = pygame.display.set_mode((1200,800))
+    pygame.display.set_caption(title="Game")
 
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help",help))
-    application.add_handler(CommandHandler("time",time))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+    rect = Rect(600, 400, 20, 20)
+    backgroung_image = pygame.image.load("depositphotos_556987214-stock-illustration-nature-scene-many-trees-hills.jpg").convert_alpha()
+    backgroung_image = pygame.transform.scale(backgroung_image, (1200, 800))
+    
+    player_image = pygame.image.load("pngtree-an-empty-woven-wicker-basket-with-a-handle-used-for-storing-png-image_14588168.png").convert_alpha()
+    player_image = pygame.transform.scale(player_image, (150, 150))
+    
+    screen.blit(backgroung_image, (0, 0))
+    screen.blit(player_image, PLAYER_POSITION)
 
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+            PLAYER_POSITION -= (10, 0)
+        elif keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            PLAYER_POSITION += (10, 0)
+        
+        pygame.event.pump()
+
+        pygame.draw.rect(screen, RED, rect)
+        pygame.display.flip()
 
 if __name__ == "__main__":
     main()
